@@ -37,12 +37,27 @@ class TrendingHashtags {
             }
         }
 
-        // Sort hashtags by frequency (descending) and alphabetically (if counts are equal)
-        return hashtagCount.entrySet().stream()
-            .sorted((a, b) -> b.getValue().equals(a.getValue()) ? a.getKey().compareTo(b.getKey()) : b.getValue() - a.getValue())
-            .limit(topN)
-            .map(entry -> entry.getKey() + " - " + entry.getValue())
-            .toList();
+        // Using a PriorityQueue (min-heap) to store the top N hashtags
+        PriorityQueue<Map.Entry<String, Integer>> pq = new PriorityQueue<>(Comparator.comparingInt(Map.Entry::getValue));
+
+        for (Map.Entry<String, Integer> entry : hashtagCount.entrySet()) {
+            pq.offer(entry);  // Offer entry into the priority queue
+            if (pq.size() > topN) {
+                pq.poll();  // Remove the least frequent if the size exceeds topN
+            }
+        }
+
+        // Collect the top N hashtags into a list
+        List<String> topHashtags = new ArrayList<>();
+        while (!pq.isEmpty()) {
+            Map.Entry<String, Integer> entry = pq.poll();
+            topHashtags.add(entry.getKey() + " - " + entry.getValue());
+        }
+
+        // Reverse the list to have it in descending order of frequency
+        Collections.reverse(topHashtags);
+
+        return topHashtags;
     }
 
     private static boolean isWithinDateRange(String tweetDate, String startDate, String endDate) {

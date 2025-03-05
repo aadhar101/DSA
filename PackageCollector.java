@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class PackageCollector {
+
     // Build the graph from roads
     private static List<List<Integer>> buildGraph(int n, int[][] roads) {
         List<List<Integer>> graph = new ArrayList<>();
@@ -56,10 +57,16 @@ public class PackageCollector {
 
         if (totalPackages == 0) return 0;
 
+        // Precompute reachable nodes within 2 roads for all nodes
+        List<Set<Integer>> reachableFromEachNode = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            reachableFromEachNode.add(getReachableInTwo(i, graph));
+        }
+
+        // Try starting from each node, but we only care about the package nodes now
         int minRoads = Integer.MAX_VALUE;
 
-        // Try starting from each node
-        for (int start = 0; start < n; start++) {
+        for (int start : packageNodes) {
             Queue<Integer> moves = new LinkedList<>();
             Set<Integer> visitedPackages = new HashSet<>();
             Set<Integer> visitedNodes = new HashSet<>();
@@ -73,10 +80,11 @@ public class PackageCollector {
                 for (int i = 0; i < size; i++) {
                     int curr = moves.poll();
 
-                    // Find reachable nodes within 2 roads
-                    Set<Integer> reachable = getReachableInTwo(curr, graph);
+                    // Use precomputed reachable nodes
+                    Set<Integer> reachable = reachableFromEachNode.get(curr);
+
                     for (int node : reachable) {
-                        if (packages[node] == 1) {
+                        if (packages[node] == 1 && !visitedPackages.contains(node)) {
                             visitedPackages.add(node);
                         }
                     }
